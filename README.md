@@ -1,6 +1,8 @@
 # tlogo
 
-Sequence logo generator for aligned FASTA files
+Sequence logo generator for aligned FASTA files with HxB2 coordinate mapping for HIV Env.
+
+![Window logo example](examples/window_logo.png)
 
 ## Install
 
@@ -19,9 +21,17 @@ pip install -e ".[dev]"
 ## Usage
 
 ```bash
-tlogo --help
-tlogo hello
-tlogo hello YourName
+# Standard logo at specific HxB2 positions
+tlogo logo alignment.fasta --positions 130,160,332
+
+# Logo for an entire Env region
+tlogo logo alignment.fasta --region V3
+
+# Per-animal window logo around a single position
+tlogo window alignment.fasta --position 100 --radius 7
+
+# Auto-detect variant positions and generate window logos
+tlogo auto alignment.fasta --variant-freq 0.5
 ```
 
 ## Testing
