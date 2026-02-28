@@ -143,5 +143,8 @@ cython_debug/
 # macOS
 .DS_Store
 
-# Test output
-tests/output/
+# Test output – pytest copies rendered logos here for visual inspection
+# (see tests/conftest.py _keep helper).  The directory is tracked via a
+# .gitkeep so fresh clones have it, but the generated files are ignored.
+tests/output/*
+!tests/output/.gitkeep

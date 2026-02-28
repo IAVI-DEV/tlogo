@@ -1,0 +1,4 @@
+# This directory is intentionally tracked (via .gitkeep) but its contents
+# are git-ignored.  Tests copy rendered logos here so users can visually
+# inspect example output without running the test suite themselves.
+# See tests/conftest.py for the _keep() helper and ensure_output_dir fixture.
