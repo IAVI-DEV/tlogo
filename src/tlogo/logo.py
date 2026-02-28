@@ -116,7 +116,7 @@ def render_logo_plot(
     labels: list[str],
     output_path: Path,
     color_scheme: str = "chemistry",
-    matrix_type: str = "information",
+    matrix_type: str = "probability",
     region_groups: dict[str, list[int]] | None = None,
 ) -> None:
     """Render logo plot(s) and save.
@@ -198,7 +198,7 @@ def process_standard_logo(
     title: str = "",
     positions: list[int] | None = None,
     regions: list[str] | None = None,
-    matrix_type: str = "information",
+    matrix_type: str = "probability",
     color_scheme: str = "chemistry",
     max_gap_fraction: float = 0.9,
 ) -> bool:

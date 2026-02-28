@@ -43,5 +43,5 @@ FONT_ANIMAL_LABEL: int = 7  # Per-animal label in window mode
 
 NATURE_SINGLE_COL: float = 3.5   # 89 mm -- Nature single column
 NATURE_DOUBLE_COL: float = 7.2   # 183 mm -- Nature double column
-PANEL_HEIGHT: float = 1.8         # Height per logo panel (single or window)
-PANEL_HEIGHT_MULTI: float = 1.6   # Height per region panel in multi-panel layout
+PANEL_HEIGHT: float = 1.0         # Height per logo panel (single or window)
+PANEL_HEIGHT_MULTI: float = 0.9   # Height per region panel in multi-panel layout

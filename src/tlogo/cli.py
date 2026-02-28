@@ -24,7 +24,7 @@ def _common_options(func):
     func = click.option(
         "--matrix-type",
         type=click.Choice(["information", "probability", "counts"]),
-        default="information", show_default=True,
+        default="probability", show_default=True,
         help="Type of matrix for logo height.",
     )(func)
     func = click.option(

@@ -34,7 +34,7 @@ def render_window_logo(
     hxb2_map: list[HxB2Position],
     output_path: Path,
     color_scheme: str = "chemistry",
-    matrix_type: str = "information",
+    matrix_type: str = "probability",
     self_name: str | None = None,
 ) -> None:
     """Render per-animal logo subplots for a window around one HxB2 position.
@@ -105,7 +105,7 @@ def process_window_mode(
     animal_groups: dict[str, list[str]],
     output_path: Path,
     title: str = "",
-    matrix_type: str = "information",
+    matrix_type: str = "probability",
     color_scheme: str = "chemistry",
     self_name: str | None = None,
 ) -> bool:
@@ -146,7 +146,7 @@ def process_auto_variants(
     title: str = "",
     radius: int = 4,
     variant_freq: float = 0.50,
-    matrix_type: str = "information",
+    matrix_type: str = "probability",
     color_scheme: str = "chemistry",
     self_name: str | None = None,
     fmt: str = "pdf",
