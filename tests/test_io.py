@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
@@ -24,6 +25,12 @@ class TestParseAlignment:
         # All sequences should be the same length
         lengths = {len(seq) for seq in aln.values()}
         assert len(lengths) == 1
+
+    def test_unaligned_raises(self, tmp_path):
+        fasta = tmp_path / "bad.fasta"
+        fasta.write_text(">seq1\nABC\n>seq2\nABCDE\n")
+        with pytest.raises(ValueError, match="not aligned"):
+            parse_alignment(fasta)
 
 
 class TestExtractAnimalName:

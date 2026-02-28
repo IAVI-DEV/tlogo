@@ -98,7 +98,7 @@ def read_selection_tsv(tsv_path: Path, p_threshold: float) -> list[int]:
     p_value <= p_threshold.
     """
     positions: set[int] = set()
-    with open(tsv_path) as f:
+    with open(tsv_path, encoding="utf-8") as f:
         reader = csv.DictReader(f, delimiter="\t")
         for row in reader:
             method = row.get("method", "")
@@ -188,10 +188,9 @@ def build_logo_matrix(
         else:
             labels.append(f"ins{col}")
 
-    to_type = matrix_type if matrix_type != "counts" else "counts"
     matrix = logomaker.alignment_to_matrix(
         subsequences,
-        to_type=to_type,
+        to_type=matrix_type,
         characters_to_ignore=".-",
         pseudocount=1.0 if matrix_type == "information" else 0.0,
     )

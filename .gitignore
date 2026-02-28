@@ -140,6 +140,9 @@ cython_debug/
 # PyPI configuration file
 .pypirc
 
+# setuptools-scm generated version file
+src/tlogo/_version.py
+
 # macOS
 .DS_Store
 
