@@ -16,10 +16,23 @@ def parse_alignment(fasta_path: Path) -> dict[str, str]:
 
     Returns:
         Ordered dict of seq_id -> aligned sequence string.
+
+    Raises:
+        ValueError: If sequences have different lengths (not aligned).
     """
     alignment: dict[str, str] = {}
     for rec in SeqIO.parse(str(fasta_path), "fasta"):
         alignment[rec.id] = str(rec.seq)
+
+    if alignment:
+        lengths = {len(seq) for seq in alignment.values()}
+        if len(lengths) > 1:
+            raise ValueError(
+                f"Sequences are not aligned: found {len(lengths)} different "
+                f"lengths {sorted(lengths)}. All sequences must be the same "
+                f"length."
+            )
+
     return alignment
 
 

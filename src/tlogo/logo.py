@@ -60,7 +60,7 @@ def apply_nature_style() -> None:
     })
 
 
-def _y_axis_label(matrix_type: str) -> str:
+def y_axis_label(matrix_type: str) -> str:
     """Return y-axis label for the given matrix type."""
     return {
         "information": "Information (bits)",
@@ -69,7 +69,7 @@ def _y_axis_label(matrix_type: str) -> str:
     }.get(matrix_type, "Value")
 
 
-def _save_figure(fig: plt.Figure, output_path: Path, fmt: str) -> None:
+def save_figure(fig: plt.Figure, output_path: Path, fmt: str) -> None:
     """Save figure to the specified format."""
     output_path.parent.mkdir(parents=True, exist_ok=True)
     if fmt == "pdf":
@@ -77,6 +77,37 @@ def _save_figure(fig: plt.Figure, output_path: Path, fmt: str) -> None:
             pdf.savefig(fig, bbox_inches="tight", dpi=300)
     else:
         fig.savefig(str(output_path), format=fmt, bbox_inches="tight", dpi=300)
+
+
+def draw_logo_on_axes(
+    ax: plt.Axes,
+    matrix: pd.DataFrame,
+    labels: list[str],
+    title_text: str,
+    y_label: str,
+    color_scheme: str = "chemistry",
+    title_fontsize: int = FONT_TITLE,
+) -> None:
+    """Draw a sequence logo on a single axes with standard styling."""
+    logo = logomaker.Logo(
+        matrix,
+        ax=ax,
+        color_scheme=color_scheme,
+        font_name="Arial",
+        stack_order="big_on_top",
+        vpad=0.04,
+        baseline_width=0.4,
+    )
+    logo.style_spines(spines=["top", "right"], visible=False)
+    logo.style_spines(spines=["left", "bottom"], visible=True)
+
+    ax.set_xticks(range(len(labels)))
+    ax.set_xticklabels(labels, rotation=90, fontsize=FONT_TICK_LABEL)
+    ax.set_ylabel(y_label, fontsize=FONT_AXIS_LABEL, labelpad=4)
+    ax.set_title(title_text, fontsize=title_fontsize, loc="left")
+    ax.yaxis.set_major_locator(
+        ticker.MaxNLocator(nbins=3, prune="both")
+    )
 
 
 def render_logo_plot(
@@ -95,7 +126,7 @@ def render_logo_plot(
     """
     apply_nature_style()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    y_label = _y_axis_label(matrix_type)
+    y_label = y_axis_label(matrix_type)
     n_positions = len(labels)
     fmt = output_path.suffix.lstrip(".") or "pdf"
 
@@ -111,31 +142,17 @@ def render_logo_plot(
         )
         fig, ax = plt.subplots(1, 1, figsize=(fig_width, PANEL_HEIGHT))
 
-        logo = logomaker.Logo(
-            matrix,
-            ax=ax,
+        draw_logo_on_axes(
+            ax, matrix, labels,
+            title_text=f"{title} \u2014 {n_positions} selected positions",
+            y_label=y_label,
             color_scheme=color_scheme,
-            font_name="Arial",
-            stack_order="big_on_top",
-            vpad=0.04,
-            baseline_width=0.4,
+            title_fontsize=FONT_TITLE,
         )
-        logo.style_spines(spines=["top", "right"], visible=False)
-        logo.style_spines(spines=["left", "bottom"], visible=True)
-
-        ax.set_xticks(range(n_positions))
-        ax.set_xticklabels(labels, rotation=90, fontsize=FONT_TICK_LABEL)
-        ax.set_ylabel(y_label, fontsize=FONT_AXIS_LABEL, labelpad=4)
-        ax.set_title(
-            f"{title} \u2014 {n_positions} selected positions",
-            fontsize=FONT_TITLE, fontweight="bold", pad=4, loc="left",
-        )
-        ax.yaxis.set_major_locator(
-            ticker.MaxNLocator(nbins=3, prune="both")
-        )
+        ax.title.set_fontweight("bold")
 
         plt.tight_layout(pad=0.4)
-        _save_figure(fig, output_path, fmt)
+        save_figure(fig, output_path, fmt)
         plt.close(fig)
 
     else:
@@ -159,33 +176,17 @@ def render_logo_plot(
             sub_matrix = matrix.iloc[row_indices, :].copy()
             sub_matrix.index = range(len(row_indices))
 
-            logo = logomaker.Logo(
-                sub_matrix,
-                ax=ax,
+            draw_logo_on_axes(
+                ax, sub_matrix, sub_labels,
+                title_text=f"{title} \u2014 {region_name}",
+                y_label=y_label,
                 color_scheme=color_scheme,
-                font_name="Arial",
-                stack_order="big_on_top",
-                vpad=0.04,
-                baseline_width=0.4,
+                title_fontsize=FONT_TITLE,
             )
-            logo.style_spines(spines=["top", "right"], visible=False)
-            logo.style_spines(spines=["left", "bottom"], visible=True)
-
-            ax.set_xticks(range(len(row_indices)))
-            ax.set_xticklabels(
-                sub_labels, rotation=90, fontsize=FONT_TICK_LABEL
-            )
-            ax.set_ylabel(y_label, fontsize=FONT_AXIS_LABEL, labelpad=4)
-            ax.set_title(
-                f"{title} \u2014 {region_name}",
-                fontsize=FONT_TITLE, fontweight="bold", pad=4, loc="left",
-            )
-            ax.yaxis.set_major_locator(
-                ticker.MaxNLocator(nbins=3, prune="both")
-            )
+            ax.title.set_fontweight("bold")
 
         plt.tight_layout(pad=0.4, h_pad=0.6)
-        _save_figure(fig, output_path, fmt)
+        save_figure(fig, output_path, fmt)
         plt.close(fig)
 
 

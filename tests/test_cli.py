@@ -130,6 +130,17 @@ class TestCLI:
         assert result.exit_code == 0, result.output
         assert output.exists()
 
+    def test_auto_runs(self, example_fasta, output_dir):
+        runner = CliRunner()
+        out_dir = output_dir / "auto_test"
+        result = runner.invoke(main, [
+            "auto", str(example_fasta),
+            "--ref-id", "parental_ref",
+            "--output-dir", str(out_dir),
+            "--variant-freq", "0.5",
+        ])
+        assert result.exit_code == 0, result.output
+
 
 class TestCLIHypothesis:
     """Property-based CLI rendering tests using hypothesis."""

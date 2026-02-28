@@ -5,21 +5,23 @@ from __future__ import annotations
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-import matplotlib.ticker as ticker
 import logomaker
 
 from tlogo.constants import (
     FONT_ANIMAL_LABEL,
-    FONT_AXIS_LABEL,
     FONT_SUPTITLE,
-    FONT_TICK_LABEL,
     NATURE_DOUBLE_COL,
     NATURE_SINGLE_COL,
     PANEL_HEIGHT,
 )
 from tlogo.hxb2 import HxB2Position, build_reverse_hxb2_map, get_env_region
 from tlogo.io import sort_animal_groups
-from tlogo.logo import _save_figure, _y_axis_label, apply_nature_style
+from tlogo.logo import (
+    apply_nature_style,
+    draw_logo_on_axes,
+    save_figure,
+    y_axis_label,
+)
 from tlogo.matrix import find_variant_positions, resolve_window_cols
 
 
@@ -42,8 +44,7 @@ def render_window_logo(
     """
     apply_nature_style()
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    y_label = _y_axis_label(matrix_type)
-    to_type = matrix_type if matrix_type != "counts" else "counts"
+    y_label = y_axis_label(matrix_type)
     pseudo = 1.0 if matrix_type == "information" else 0.0
     fmt = output_path.suffix.lstrip(".") or "pdf"
 
@@ -77,33 +78,22 @@ def render_window_logo(
 
         matrix = logomaker.alignment_to_matrix(
             subsequences,
-            to_type=to_type,
+            to_type=matrix_type,
             characters_to_ignore=".-",
             pseudocount=pseudo,
         )
         matrix.index = range(len(matrix))
 
-        logo = logomaker.Logo(
-            matrix, ax=ax, color_scheme=color_scheme,
-            font_name="Arial", stack_order="big_on_top",
-            vpad=0.04, baseline_width=0.4,
-        )
-        logo.style_spines(spines=["top", "right"], visible=False)
-        logo.style_spines(spines=["left", "bottom"], visible=True)
-
-        ax.set_xticks(range(len(selected_cols)))
-        ax.set_xticklabels(labels, rotation=90, fontsize=FONT_TICK_LABEL)
-        ax.set_ylabel(y_label, fontsize=FONT_AXIS_LABEL, labelpad=4)
-        ax.set_title(
-            f"{animal_name}  (n={n_seqs})",
-            fontsize=FONT_ANIMAL_LABEL, loc="left",
-        )
-        ax.yaxis.set_major_locator(
-            ticker.MaxNLocator(nbins=3, prune="both")
+        draw_logo_on_axes(
+            ax, matrix, labels,
+            title_text=f"{animal_name}  (n={n_seqs})",
+            y_label=y_label,
+            color_scheme=color_scheme,
+            title_fontsize=FONT_ANIMAL_LABEL,
         )
 
     fig.tight_layout(rect=[0, 0, 1, 0.95])
-    _save_figure(fig, output_path, fmt)
+    save_figure(fig, output_path, fmt)
     plt.close(fig)
 
 

@@ -8,15 +8,19 @@ from hypothesis import strategies as st
 
 from tlogo.hxb2 import HxB2Position, build_hxb2_map, build_reverse_hxb2_map
 from tlogo.matrix import (
+    build_logo_matrix,
     build_region_groups,
     compute_gap_fraction,
     filter_positions_by_gaps,
     find_variant_positions,
     parse_positions,
     parse_regions,
+    read_selection_tsv,
     resolve_positions_from_regions,
     resolve_window_cols,
 )
+
+from pathlib import Path
 
 from conftest import AA_ALPHABET, AA_WITH_GAP, aligned_aa_seqs
 
@@ -213,3 +217,95 @@ class TestFindVariantPositions:
         valid_positions = {p.hxb2_aa_pos for p in hmap if p.hxb2_aa_pos is not None}
         for pos in result:
             assert pos in valid_positions
+
+
+class TestReadSelectionTsv:
+    def _write_tsv(self, tmp_path: Path, rows: list[str]) -> Path:
+        header = "method\tselection_type\tp_value\thxb2_aa_pos"
+        path = tmp_path / "selection_summary.tsv"
+        path.write_text(header + "\n" + "\n".join(rows) + "\n", encoding="utf-8")
+        return path
+
+    def test_filters_fel_positive(self, tmp_path):
+        tsv = self._write_tsv(tmp_path, [
+            "FEL\tpositive\t0.05\t100",
+            "FEL\tnegative\t0.05\t200",
+        ])
+        result = read_selection_tsv(tsv, p_threshold=0.1)
+        assert result == [100]
+
+    def test_filters_meme_episodic(self, tmp_path):
+        tsv = self._write_tsv(tmp_path, [
+            "MEME\tepisodic\t0.01\t300",
+            "MEME\tpervasive\t0.01\t400",
+        ])
+        result = read_selection_tsv(tsv, p_threshold=0.1)
+        assert result == [300]
+
+    def test_respects_p_threshold(self, tmp_path):
+        tsv = self._write_tsv(tmp_path, [
+            "FEL\tpositive\t0.05\t100",
+            "FEL\tpositive\t0.50\t200",
+        ])
+        result = read_selection_tsv(tsv, p_threshold=0.1)
+        assert result == [100]
+
+    def test_skips_empty_hxb2(self, tmp_path):
+        tsv = self._write_tsv(tmp_path, [
+            "FEL\tpositive\t0.05\t",
+        ])
+        result = read_selection_tsv(tsv, p_threshold=0.1)
+        assert result == []
+
+    def test_skips_non_numeric_pvalue(self, tmp_path):
+        tsv = self._write_tsv(tmp_path, [
+            "FEL\tpositive\tNA\t100",
+        ])
+        result = read_selection_tsv(tsv, p_threshold=0.1)
+        assert result == []
+
+    def test_returns_sorted(self, tmp_path):
+        tsv = self._write_tsv(tmp_path, [
+            "FEL\tpositive\t0.05\t300",
+            "MEME\tepisodic\t0.05\t100",
+            "FEL\tpositive\t0.05\t200",
+        ])
+        result = read_selection_tsv(tsv, p_threshold=0.1)
+        assert result == [100, 200, 300]
+
+
+class TestBuildLogoMatrix:
+    def test_returns_matrix_and_labels(self):
+        hmap = [
+            HxB2Position(0, 1, "SP", "A"),
+            HxB2Position(1, 2, "SP", "B"),
+            HxB2Position(2, 3, "SP", "C"),
+        ]
+        seqs = ["ABC", "ABD", "ABC"]
+        matrix, labels = build_logo_matrix(seqs, [0, 1, 2], hmap, "information")
+        assert list(labels) == ["1", "2", "3"]
+        assert len(matrix) == 3  # 3 columns
+
+    def test_insertion_label(self):
+        hmap = [
+            HxB2Position(0, 1, "SP", "A"),
+            HxB2Position(1, None, None, "-"),
+            HxB2Position(2, 2, "SP", "B"),
+        ]
+        seqs = ["AXB", "AYB"]
+        matrix, labels = build_logo_matrix(seqs, [0, 1, 2], hmap, "information")
+        assert labels[1] == "ins1"
+
+    def test_counts_matrix_type(self):
+        hmap = [HxB2Position(i, i + 1, "SP", "A") for i in range(3)]
+        seqs = ["ABC", "ABC"]
+        matrix, labels = build_logo_matrix(seqs, [0, 1, 2], hmap, "counts")
+        # counts should sum to number of sequences per column
+        assert matrix.sum(axis=1).iloc[0] == pytest.approx(2.0)
+
+    def test_probability_matrix_type(self):
+        hmap = [HxB2Position(i, i + 1, "SP", "A") for i in range(3)]
+        seqs = ["ABC", "ABC"]
+        matrix, labels = build_logo_matrix(seqs, [0, 1, 2], hmap, "probability")
+        # probabilities should sum to ~1.0 per row
+        assert matrix.sum(axis=1).iloc[0] == pytest.approx(1.0)
